@@ -12,17 +12,12 @@ public class SmartController : MonoBehaviour{
 
     private Vector3 targetPose;
 
-    public SocketHandler socketHandler;
-
     void Start(){
         
     }
 
     // Update is called once per frame
     void Update(){
-        
-
-        targetPose = socketHandler.GetPose();
 
         if( transform.position.x != targetPose.x || transform.position.z != targetPose.y ){
             transform.position = Vector3.Lerp( 
@@ -40,8 +35,11 @@ public class SmartController : MonoBehaviour{
         }
     }
 
-    void SendPose(){
-        Vector3 newPose = new Vector3(targetX, targetZ, targetTheta);
-        string encodedPose = newPose.ToString();
+    public void SetPose(Vector3 pose){
+        targetPose = pose;
+    }
+
+    public Vector3 GetPose(){
+        return new Vector3( transform.position.x, transform.position.z, transform.rotation.y );
     }
 }

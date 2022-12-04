@@ -14,30 +14,21 @@ public class SocketHandler : MonoBehaviour
     IPAddress localAdd;
     TcpListener listener;
     TcpClient client;
-    Vector3 receivedPos = Vector3.zero;
+    float[] receivedInput;
     string currentPose = "";
-    bool poseUpdate = false;
 
     bool running;
 
-    public Vector3 GetPose(){
-        return receivedPos;
-    }
+    private bool inputReady = false;
 
-    public void ReceivePose(string newPose){
-        currentPose = newPose;
-        poseUpdate = true;
-    }
 
-    private void Start()
-    {
+    private void Start(){
         ThreadStart ts = new ThreadStart(GetInfo);
         mThread = new Thread(ts);
         mThread.Start();
     }
 
-    void GetInfo()
-    {
+    void GetInfo(){
         localAdd = IPAddress.Parse(connectionIP);
         listener = new TcpListener(IPAddress.Any, connectionPort);
         listener.Start();
@@ -46,21 +37,9 @@ public class SocketHandler : MonoBehaviour
 
         running = true;
         while (running){
-            if( poseUpdate ){
-                SendUnity2Python();
-                poseUpdate = false;
-            }
             SendAndReceiveData();
         }
         listener.Stop();
-    }
-
-    void SendUnity2Python(){
-        NetworkStream nwStream = client.GetStream();
-
-        //---Sending Data to Host----
-        byte[] myWriteBuffer = Encoding.ASCII.GetBytes(currentPose); //Converting string to byte data
-        nwStream.Write(myWriteBuffer, 0, myWriteBuffer.Length); //Sending the data in Bytes to Python
     }
 
     void SendAndReceiveData(){
@@ -74,7 +53,8 @@ public class SocketHandler : MonoBehaviour
         if (dataReceived != null)
         {
             //---Using received data---
-            receivedPos = StringToVector3(dataReceived); //<-- assigning receivedPos value from Python
+            receivedInput = StringToArr(dataReceived); //<-- assigning receivedPos value from Python
+            inputReady = true;
             print("Data received");
 
             //---Sending Data to Host----
@@ -83,25 +63,28 @@ public class SocketHandler : MonoBehaviour
         }
     }
 
-    public static Vector3 StringToVector3(string sVector)
-    {
-        // Remove the parentheses
-        if (sVector.StartsWith("(") && sVector.EndsWith(")"))
-        {
-            sVector = sVector.Substring(1, sVector.Length - 2);
-        }
+    public static float[] StringToArr(string sVector){
 
         // split the items
         string[] sArray = sVector.Split(',');
 
-        // store as a Vector3
-        Vector3 result = new Vector3(
-            float.Parse(sArray[0]),
-            float.Parse(sArray[1]),
-            float.Parse(sArray[2]));
+        float[] result = new float[sArray.Length];
+        for(int i = 0; i<sArray.Length; i++){
+            result[i] = float.Parse(sArray[i]);
+        }
 
         return result;
     }
+
+    public bool InputReady(){
+        return inputReady;
+    }
+
+    public float[] GetInput(){
+        inputReady = false;
+        return receivedInput;
+    }
+
     /*
     public static string GetLocalIPAddress()
     {
