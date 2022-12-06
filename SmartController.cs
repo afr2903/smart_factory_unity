@@ -22,8 +22,8 @@ public class SmartController : MonoBehaviour{
         if( transform.position.x != targetPose.x || transform.position.z != targetPose.y ){
             transform.position = Vector3.Lerp( 
                 transform.position,
-                new Vector3(targetPose.x/100, transform.position.y, targetPose.y/100),
-                Mathf.PingPong(Time.time, speed/100)
+                new Vector3(targetPose.x/50, transform.position.y, targetPose.y/50),
+                Mathf.PingPong(Time.time, speed/200)
             );
         }
         if( transform.rotation.y != targetPose.z){
